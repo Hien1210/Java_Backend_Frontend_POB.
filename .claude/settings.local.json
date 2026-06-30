@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"/d/DATN_POB \\(3_7\\)\" && grep -rl \"shop/pos\\\\|ShopPos\\\\|BamBill\\\\|bamBill\" src/main 2>/dev/null)"
+    ]
+  }
+}
