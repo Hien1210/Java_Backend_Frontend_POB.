@@ -157,6 +157,29 @@ public class AccountDAOImpl implements AccountDAO {
     }
 
     @Override
+    public long createAndReturnId(Account account) {
+        String sql = "INSERT INTO Accounts (username, password, email, full_name, phone, avatar_url, role_id) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, account.getUserName());
+            ps.setString(2, account.getPassWord());
+            ps.setString(3, account.getEmail());
+            ps.setNString(4, account.getFullName());
+            ps.setString(5, account.getPhone());
+            ps.setString(6, account.getAvatarUrl());
+            ps.setLong(7, account.getRoleId());
+            ps.executeUpdate();
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) return rs.getLong(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0L;
+    }
+
+    @Override
     public Boolean update(Account account) {
         boolean updatePassword = account.getPassWord() != null && !account.getPassWord().isBlank();
         String sql = updatePassword
