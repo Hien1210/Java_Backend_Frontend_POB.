@@ -212,25 +212,31 @@
                     </div>
 
                     <!-- Mật khẩu mới -->
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <svg class="w-4 h-4 text-[#273155] opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                            </svg>
+                    <div>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <svg class="w-4 h-4 text-[#273155] opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                            </div>
+                            <input type="password" id="passwordInput" name="password" placeholder="Mật khẩu mới (8–16 ký tự)" required
+                                   class="input-field w-full border-2 border-gray-200 text-gray-800 text-sm font-medium rounded-xl focus:border-[#273155] block pl-10 py-3.5 outline-none">
                         </div>
-                        <input type="password" name="password" placeholder="Mật khẩu mới" required
-                               class="input-field w-full border-2 border-gray-200 text-gray-800 text-sm font-medium rounded-xl focus:border-[#273155] block pl-10 py-3.5 outline-none">
+                        <span id="passwordError" class="hidden text-red-500 text-xs font-semibold mt-1 pl-1 block"></span>
                     </div>
 
                     <!-- Xác nhận mật khẩu -->
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <svg class="w-4 h-4 text-[#273155] opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                            </svg>
+                    <div>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <svg class="w-4 h-4 text-[#273155] opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                </svg>
+                            </div>
+                            <input type="password" id="confirmPasswordInput" name="confirm_password" placeholder="Xác nhận mật khẩu" required
+                                   class="input-field w-full border-2 border-gray-200 text-gray-800 text-sm font-medium rounded-xl focus:border-[#273155] block pl-10 py-3.5 outline-none">
                         </div>
-                        <input type="password" name="confirm_password" placeholder="Xác nhận mật khẩu" required
-                               class="input-field w-full border-2 border-gray-200 text-gray-800 text-sm font-medium rounded-xl focus:border-[#273155] block pl-10 py-3.5 outline-none">
+                        <span id="confirmPasswordError" class="hidden text-red-500 text-xs font-semibold mt-1 pl-1 block"></span>
                     </div>
 
                     <!-- Nút Đổi mật khẩu -->
@@ -238,6 +244,60 @@
                         ĐỔI MẬT KHẨU
                     </button>
                 </form>
+
+                <script>
+                    (function() {
+                        var pwdInput = document.getElementById('passwordInput');
+                        var cfmInput = document.getElementById('confirmPasswordInput');
+                        var pwdError = document.getElementById('passwordError');
+                        var cfmError = document.getElementById('confirmPasswordError');
+
+                        function validatePassword(val) {
+                            if (val.length === 0) return null;
+                            if (/\s/.test(val)) return 'Mật khẩu không được chứa khoảng trống!';
+                            if (val.length < 8) return 'Mật khẩu phải có ít nhất 8 ký tự!';
+                            if (val.length > 16) return 'Mật khẩu không được vượt quá 16 ký tự!';
+                            return null;
+                        }
+
+                        function showError(el, msg) {
+                            if (msg) {
+                                el.textContent = '⚠️ ' + msg;
+                                el.classList.remove('hidden');
+                            } else {
+                                el.textContent = '';
+                                el.classList.add('hidden');
+                            }
+                        }
+
+                        pwdInput.addEventListener('input', function() {
+                            showError(pwdError, validatePassword(this.value));
+                            if (cfmInput.value.length > 0) {
+                                showError(cfmError, this.value !== cfmInput.value ? 'Mật khẩu xác nhận không khớp!' : null);
+                            }
+                        });
+
+                        cfmInput.addEventListener('input', function() {
+                            showError(cfmError, this.value.length > 0 && pwdInput.value !== this.value ? 'Mật khẩu xác nhận không khớp!' : null);
+                        });
+
+                        pwdInput.closest('form').addEventListener('submit', function(e) {
+                            var pwd = pwdInput.value;
+                            var pwdMsg = validatePassword(pwd);
+                            showError(pwdError, pwdMsg);
+
+                            var cfmMsg = null;
+                            if (!pwdMsg && cfmInput.value !== pwd) {
+                                cfmMsg = 'Mật khẩu xác nhận không khớp!';
+                            }
+                            showError(cfmError, cfmMsg);
+
+                            if (pwdMsg || cfmMsg) {
+                                e.preventDefault();
+                            }
+                        });
+                    })();
+                </script>
             <% } %>
 
             <!-- Quay lại đăng nhập -->
