@@ -61,6 +61,7 @@ avatar_url NVARCHAR(MAX),
 role_id    BIGINT        NOT NULL,
 status     VARCHAR(20)   CHECK (status IN ('ACTIVE', 'PENDING', 'BLOCKED')) DEFAULT 'ACTIVE',
 is_deleted BIT           DEFAULT 0,
+is_online  BIT           NOT NULL DEFAULT 0,
 created_at DATETIME2     DEFAULT GETDATE(),
 updated_at DATETIME2     DEFAULT GETDATE(),
 CONSTRAINT FK_Account_Role FOREIGN KEY (role_id) REFERENCES Roles(id)
