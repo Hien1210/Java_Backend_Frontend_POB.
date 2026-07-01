@@ -135,6 +135,40 @@ public class ToppingCategoryDAOImpl implements ToppingCategoryDAO {
         return list;
     }
 
+    // ── FIND DELETED BY SHOP ─────────────────────────────────────────────────
+
+    @Override
+    public List<ToppingCategory> findDeletedByShopId(long shopId) {
+        String sql = "SELECT id, shop_id, name, description, is_deleted " +
+                "FROM ToppingCategories WHERE shop_id = ? AND is_deleted = 1 ORDER BY id DESC";
+        List<ToppingCategory> list = new ArrayList<>();
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, shopId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapRow(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // ── RESTORE ──────────────────────────────────────────────────────────────
+
+    @Override
+    public Boolean restore(long id) {
+        String sql = "UPDATE ToppingCategories SET is_deleted = 0 WHERE id = ?";
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            return ps.executeUpdate() == 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     // ── HELPERS ──────────────────────────────────────────────────────────────
 
     private ToppingCategory mapRow(ResultSet rs) throws Exception {

@@ -28,7 +28,8 @@ public class QuanLyLoaiToppingServlet extends HttpServlet {
 
 
 
-        private static final String VIEW = "/shop/Quanlyloaitopping.jsp";
+        private static final String VIEW       = "/shop/Quanlyloaitopping.jsp";
+        private static final String VIEW_TRASH = "/shop/ThungRacLoaiTopping.jsp";
 
         private final ToppingCategoryDAO categoryDAO = new ToppingCategoryDAOImpl();
         private final ShopDAO            shopDAO     = new ShopDAOImpl();
@@ -47,6 +48,13 @@ public class QuanLyLoaiToppingServlet extends HttpServlet {
             if (shop == null) return;
 
             String action = normalize(req.getParameter("action"));
+
+            if ("trash".equals(action)) {
+                List<ToppingCategory> deletedCats = categoryDAO.findDeletedByShopId(shop.getId());
+                req.setAttribute("deletedCategories", deletedCats);
+                req.getRequestDispatcher(VIEW_TRASH).forward(req, resp);
+                return;
+            }
 
             if ("edit".equals(action)) {
                 Long id = parseId(req);
@@ -89,6 +97,9 @@ public class QuanLyLoaiToppingServlet extends HttpServlet {
                 case "delete":
                     success = delete(req, resp, shop);
                     break;
+                case "restore":
+                    restoreToppingCategory(req, resp, shop);
+                    return;
                 default: // create
                     success = create(req, resp, shop);
                     break;
@@ -188,6 +199,25 @@ public class QuanLyLoaiToppingServlet extends HttpServlet {
                 return false;
             }
             return true;
+        }
+
+        private void restoreToppingCategory(HttpServletRequest req, HttpServletResponse resp, Shop shop)
+                throws ServletException, IOException {
+            Long id = parseId(req);
+            if (id == null) {
+                req.setAttribute("loi", "ID loại topping không hợp lệ!");
+                req.setAttribute("deletedCategories", categoryDAO.findDeletedByShopId(shop.getId()));
+                req.getRequestDispatcher(VIEW_TRASH).forward(req, resp);
+                return;
+            }
+            Boolean ok = categoryDAO.restore(id);
+            if (ok == null || !ok) {
+                req.setAttribute("loi", "Không thể khôi phục loại topping!");
+                req.setAttribute("deletedCategories", categoryDAO.findDeletedByShopId(shop.getId()));
+                req.getRequestDispatcher(VIEW_TRASH).forward(req, resp);
+                return;
+            }
+            resp.sendRedirect(req.getContextPath() + "/shop/topping-categories?action=trash&success=restore");
         }
 
         // ── HELPERS ──────────────────────────────────────────────────────────────

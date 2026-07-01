@@ -212,6 +212,44 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
     @Override
+    public List<Product> findDeletedByShopId(long shopId) {
+        List<Product> products = new ArrayList<>();
+        String sql = "SELECT * FROM Products WHERE shop_id = ? AND is_deleted = 1 ORDER BY id DESC";
+        try (Connection conn = openConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, shopId);
+            try (ResultSet rs = ps.executeQuery()) {
+                ProductSchema schema = resolveSchema(conn);
+                while (rs.next()) {
+                    products.add(mapProduct(rs, schema));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return products;
+    }
+
+    @Override
+    public boolean restore(long id, long shopId) {
+        try (Connection conn = openConnection()) {
+            ProductSchema schema = resolveSchema(conn);
+            if (schema.isDeleted == null) return false;
+            String sql = "UPDATE " + q(schema.tableName) + " SET " + q(schema.isDeleted) + " = 0"
+                    + (schema.updatedAt != null ? ", " + q(schema.updatedAt) + " = GETDATE()" : "")
+                    + " WHERE " + q(schema.id) + " = ? AND " + q(schema.shopId) + " = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setLong(1, id);
+                ps.setLong(2, shopId);
+                return ps.executeUpdate() == 1;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
     public long createAndReturnId(Product product) {
         String sql = "INSERT INTO Products (shop_id, category_id, product_name, description, stock_quantity, sold_count, status, is_deleted) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, 0)";

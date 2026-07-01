@@ -26,7 +26,8 @@ import java.util.Locale;
 @WebServlet("/shop/product-types")
 public class ShopProductTypeServlet extends HttpServlet {
 
-    private static final String VIEW = "/shop/Quanlyloaisanpham.jsp";
+    private static final String VIEW       = "/shop/Quanlyloaisanpham.jsp";
+    private static final String VIEW_TRASH = "/shop/ThungRacLoaiSanPham.jsp";
 
     private final CategoryDAO categoryDAO = new CategoryDAOImpl();
     private final ShopDAO     shopDAO     = new ShopDAOImpl();
@@ -45,6 +46,13 @@ public class ShopProductTypeServlet extends HttpServlet {
         if (shop == null) return;
 
         String action = normalize(req.getParameter("action"));
+
+        if ("trash".equals(action)) {
+            List<Category> deletedCategories = categoryDAO.findDeletedByShopId(shop.getId());
+            req.setAttribute("deletedCategories", deletedCategories);
+            req.getRequestDispatcher(VIEW_TRASH).forward(req, resp);
+            return;
+        }
 
         if ("edit".equals(action)) {
             Long id = parseId(req);
@@ -87,6 +95,9 @@ public class ShopProductTypeServlet extends HttpServlet {
             case "delete":
                 success = delete(req, resp, shop);
                 break;
+            case "restore":
+                restoreCategory(req, resp, shop);
+                return;
             default: // create
                 success = create(req, resp, shop);
                 break;
@@ -186,6 +197,25 @@ public class ShopProductTypeServlet extends HttpServlet {
             return false;
         }
         return true;
+    }
+
+    private void restoreCategory(HttpServletRequest req, HttpServletResponse resp, Shop shop)
+            throws ServletException, IOException {
+        Long id = parseId(req);
+        if (id == null) {
+            req.setAttribute("loi", "ID loại sản phẩm không hợp lệ!");
+            req.setAttribute("deletedCategories", categoryDAO.findDeletedByShopId(shop.getId()));
+            req.getRequestDispatcher(VIEW_TRASH).forward(req, resp);
+            return;
+        }
+        Boolean ok = categoryDAO.restore(id);
+        if (ok == null || !ok) {
+            req.setAttribute("loi", "Không thể khôi phục loại sản phẩm!");
+            req.setAttribute("deletedCategories", categoryDAO.findDeletedByShopId(shop.getId()));
+            req.getRequestDispatcher(VIEW_TRASH).forward(req, resp);
+            return;
+        }
+        resp.sendRedirect(req.getContextPath() + "/shop/product-types?action=trash&success=restore");
     }
 
     // ── HELPERS ──────────────────────────────────────────────────────────────

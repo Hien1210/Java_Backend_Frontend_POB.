@@ -144,6 +144,42 @@ public class ToppingDAOImpl implements ToppingDAO {
         return list;
     }
 
+    // ── FIND DELETED BY SHOP ─────────────────────────────────────────────────
+
+    @Override
+    public List<Topping> findDeletedByShopId(long shopId) {
+        String sql = "SELECT t.id, t.topping_category_id, t.shop_id, t.topping_name, t.price, t.status, t.is_deleted, " +
+                "tc.name AS category_name " +
+                "FROM Toppings t LEFT JOIN ToppingCategories tc ON t.topping_category_id = tc.id " +
+                "WHERE t.shop_id = ? AND t.is_deleted = 1 ORDER BY t.id DESC";
+        List<Topping> list = new ArrayList<>();
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, shopId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapRow(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // ── RESTORE ──────────────────────────────────────────────────────────────
+
+    @Override
+    public Boolean restore(long id) {
+        String sql = "UPDATE Toppings SET is_deleted = 0 WHERE id = ?";
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            return ps.executeUpdate() == 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     // ── HELPERS ──────────────────────────────────────────────────────────────
 
     private Topping mapRow(ResultSet rs) throws Exception {

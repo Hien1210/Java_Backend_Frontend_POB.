@@ -210,6 +210,7 @@
     <header class="top-header">
         <h2>📂 QUẢN LÝ LOẠI SẢN PHẨM</h2>
         <div class="header-actions">
+            <a href="${pageContext.request.contextPath}/shop/product-types?action=trash" class="btn-logout" style="background:rgba(230,57,70,.10);color:#E63946;border:1px solid #E63946;">🗑️ Thùng rác</a>
             <div class="avatar">${fn:toUpperCase(fn:substring(sessionScope.account.userName,0,2))}</div>
             <a href="${pageContext.request.contextPath}/logout" class="btn-logout">🚪 Đăng xuất</a>
         </div>

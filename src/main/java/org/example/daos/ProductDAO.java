@@ -27,4 +27,6 @@ public interface ProductDAO {
     int countByShopId(long shopId);
     int countByCategoryId(long categoryId);
 
+    List<Product> findDeletedByShopId(long shopId);
+    boolean restore(long id, long shopId);
 }

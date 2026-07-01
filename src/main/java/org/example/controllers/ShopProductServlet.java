@@ -22,7 +22,8 @@ public class ShopProductServlet extends HttpServlet {
     private final CategoryDAO categoryDAO = new CategoryDAOImpl();
     private final ShopDAO shopDAO = new ShopDAOImpl();
 
-    private static final String VIEW_LIST = "/shop/Quanlysanpham.jsp";
+    private static final String VIEW_LIST  = "/shop/Quanlysanpham.jsp";
+    private static final String VIEW_TRASH = "/shop/ThungRacSanPham.jsp";
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -68,6 +69,13 @@ public class ShopProductServlet extends HttpServlet {
 
             req.setAttribute("productSua", product);
             forwardProductPage(req, resp, shop.getId());
+            return;
+        }
+
+        if ("trash".equals(action)) {
+            List<Product> deletedProducts = productDAO.findDeletedByShopId(shop.getId());
+            req.setAttribute("deletedProducts", deletedProducts);
+            req.getRequestDispatcher(VIEW_TRASH).forward(req, resp);
             return;
         }
 
@@ -120,6 +128,9 @@ public class ShopProductServlet extends HttpServlet {
                     break;
                 case "delete":
                     deleteProduct(req, resp, shop);
+                    break;
+                case "restore":
+                    restoreProduct(req, resp, shop);
                     break;
                 default:
                     resp.sendRedirect(req.getContextPath() + "/shop/products");
@@ -330,6 +341,32 @@ public class ShopProductServlet extends HttpServlet {
         }
 
         resp.sendRedirect(req.getContextPath() + "/shop/products?success=delete");
+    }
+
+    // ─── RESTORE PRODUCT ────────────────────────────────────────────────
+
+    private void restoreProduct(HttpServletRequest req, HttpServletResponse resp, Shop shop)
+            throws IOException, ServletException {
+
+        Long id = parseLong(req.getParameter("id"));
+        if (id == null) {
+            req.setAttribute("loi", "ID sản phẩm không hợp lệ!");
+            List<Product> deletedProducts = productDAO.findDeletedByShopId(shop.getId());
+            req.setAttribute("deletedProducts", deletedProducts);
+            req.getRequestDispatcher(VIEW_TRASH).forward(req, resp);
+            return;
+        }
+
+        boolean ok = productDAO.restore(id, shop.getId());
+        if (!ok) {
+            req.setAttribute("loi", "Không thể khôi phục sản phẩm!");
+            List<Product> deletedProducts = productDAO.findDeletedByShopId(shop.getId());
+            req.setAttribute("deletedProducts", deletedProducts);
+            req.getRequestDispatcher(VIEW_TRASH).forward(req, resp);
+            return;
+        }
+
+        resp.sendRedirect(req.getContextPath() + "/shop/products?action=trash&success=restore");
     }
 
     // ─── FORWARD ──────────────────────────────────────────────────────
