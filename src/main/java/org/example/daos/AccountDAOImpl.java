@@ -157,6 +157,29 @@ public class AccountDAOImpl implements AccountDAO {
     }
 
     @Override
+    public long createAndReturnId(Account account) {
+        String sql = "INSERT INTO Accounts (username, password, email, full_name, phone, avatar_url, role_id) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, account.getUserName());
+            ps.setString(2, account.getPassWord());
+            ps.setString(3, account.getEmail());
+            ps.setNString(4, account.getFullName());
+            ps.setString(5, account.getPhone());
+            ps.setString(6, account.getAvatarUrl());
+            ps.setLong(7, account.getRoleId());
+            ps.executeUpdate();
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) return rs.getLong(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0L;
+    }
+
+    @Override
     public Boolean update(Account account) {
         boolean updatePassword = account.getPassWord() != null && !account.getPassWord().isBlank();
         String sql = updatePassword
@@ -462,6 +485,7 @@ public class AccountDAOImpl implements AccountDAO {
         acc.setPhone(rs.getString("phone"));
         acc.setRoleId(rs.getLong("role_id"));
         acc.setUserName(rs.getString("username"));
+        try { acc.setOnline(rs.getBoolean("is_online")); } catch (SQLException ignored) {}
         return acc;
     }
 
@@ -526,6 +550,20 @@ public class AccountDAOImpl implements AccountDAO {
         }
     }
 
+    @Override
+    public boolean updateShipperOnlineStatus(long accountId, boolean isOnline) {
+        String sql = "UPDATE Accounts SET is_online = ?, updated_at = GETDATE() WHERE id = ? AND role_id = 4";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setBoolean(1, isOnline);
+            ps.setLong(2, accountId);
+            return ps.executeUpdate() == 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     private Account mapAccountFull(ResultSet rs) throws SQLException {
         Account account = new Account();
         account.setId(rs.getLong("id"));
@@ -538,6 +576,7 @@ public class AccountDAOImpl implements AccountDAO {
         account.setRoleId(rs.getLong("role_id"));
         account.setStaTus(rs.getString("status"));
         account.setDeleted(rs.getBoolean("is_deleted"));
+        try { account.setOnline(rs.getBoolean("is_online")); } catch (SQLException ignored) {}
 
         java.sql.Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {

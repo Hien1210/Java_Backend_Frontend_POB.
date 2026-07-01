@@ -16,6 +16,7 @@ public interface AccountDAO {
     List<Account> getAll();
     Account findById(long id);
     Boolean create(Account account);
+    long createAndReturnId(Account account);
     Boolean update(Account account);
     Boolean delete(long id);
     int getTotalAccounts();
@@ -28,4 +29,5 @@ public interface AccountDAO {
     List<Account> findTop5PendingShopAccounts();
     List<Account> findPendingShopAccounts();
     boolean updateAccountStatus(long accountId, String status);
+    boolean updateShipperOnlineStatus(long accountId, boolean isOnline);
 }
