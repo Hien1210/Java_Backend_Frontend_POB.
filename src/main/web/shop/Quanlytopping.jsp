@@ -228,6 +228,7 @@
         <div class="header-actions">
             <input type="text" class="search-bar" placeholder="🔍 Tìm tên topping..."
                    oninput="filterTable(this.value)">
+            <a href="${pageContext.request.contextPath}/shop/toppings?action=trash" class="btn-logout" style="background:rgba(230,57,70,.10);color:#E63946;border:1px solid #E63946;">🗑️ Thùng rác</a>
             <div class="avatar">${fn:toUpperCase(fn:substring(sessionScope.account.userName,0,2))}</div>
             <a href="${pageContext.request.contextPath}/logout" class="btn-logout">🚪 Đăng xuất</a>
         </div>

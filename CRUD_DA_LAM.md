@@ -382,6 +382,56 @@ Truoc do `/shop/pos` (`ShopPosServlet`, `Banhang.jsp`) co nut chon "🏦 PayOS" 
   thanh `paymentMethod == 'PAYOS'`; bo placeholder QR "Đang chờ tích hợp PayOS", thay bang
   "✅ Đã thanh toán qua PayOS" (vi luc xem hoa don nay thi PayOS da xac nhan PAID roi).
 
+## 19. Xoa mem (Soft Delete) va Thung Rac cho CRUD Shop
+
+Cac CRUD quan ly shop (san pham, topping, loai san pham, loai topping) da co cot `is_deleted` trong
+DB nen viec xoa mem da ton tai tu truoc (DAO ghi `is_deleted = 1` thay vi DELETE). Lan nay bo sung
+tinh nang **Thung Rac + Khoi Phuc** cho 4 module:
+
+Da sua backend (DAO interface + impl):
+
+- `src/main/java/org/example/daos/ProductDAO.java`: them `findDeletedByShopId(shopId)`,
+  `restore(id, shopId)`
+- `src/main/java/org/example/daos/ProductDAOImpl.java`: them 2 method tuong ung, dung SQL
+  `WHERE is_deleted = 1` de lay danh sach tron thung rac, va `SET is_deleted = 0` de khoi phuc.
+- `src/main/java/org/example/daos/ToppingDAO.java`: them `findDeletedByShopId(shopId)`,
+  `restore(id)`
+- `src/main/java/org/example/daos/ToppingDAOImpl.java`: them 2 method, join sang ToppingCategories
+  de lay ten loai.
+- `src/main/java/org/example/daos/ToppingCategoryDAO.java`: them `findDeletedByShopId(shopId)`,
+  `restore(id)`
+- `src/main/java/org/example/daos/ToppingCategoryDAOImpl.java`: them 2 method tuong ung.
+- `src/main/java/org/example/daos/CategoryDAO.java`: them `findDeletedByShopId(shopId)`,
+  `restore(id)`
+- `src/main/java/org/example/daos/CategoryDAOImpl.java`: them 2 method tuong ung dung schema dong.
+
+Da sua backend (Servlet):
+
+- `src/main/java/org/example/controllers/ShopProductServlet.java`:
+  - GET `action=trash` -> tai danh sach san pham bi xoa, forward `/shop/ThungRacSanPham.jsp`.
+  - POST `action=restore` -> goi `productDAO.restore(id, shopId)`, redirect ve trang trash.
+- `src/main/java/org/example/controllers/ShopToppingServlet.java`: tuong tu cho topping.
+- `src/main/java/org/example/controllers/ShopProductTypeServlet.java`: tuong tu cho loai san pham.
+- `src/main/java/org/example/controllers/QuanLyLoaiToppingServlet.java`: tuong tu cho loai topping.
+
+Da them giao dien:
+
+- `src/main/web/shop/ThungRacSanPham.jsp` (moi) - danh sach san pham trong thung rac.
+- `src/main/web/shop/ThungRacTopping.jsp` (moi) - danh sach topping trong thung rac.
+- `src/main/web/shop/ThungRacLoaiSanPham.jsp` (moi) - danh sach loai san pham trong thung rac.
+- `src/main/web/shop/ThungRacLoaiTopping.jsp` (moi) - danh sach loai topping trong thung rac.
+- Them nut "Thung rac" vao header cua 4 trang quan ly hien co:
+  `Quanlysanpham.jsp`, `Quanlytopping.jsp`, `Quanlyloaisanpham.jsp`, `Quanlyloaitopping.jsp`.
+
+Chuc nang da co:
+
+- Xoa san pham/topping/loai san pham/loai topping -> vao thung rac (is_deleted = 1), khong mat data.
+- Bam nut "Thung rac" trong trang quan ly -> xem danh sach cac muc da xoa cua shop minh.
+- Bam "Khoi phuc" tren tung muc -> dat is_deleted = 0, hien thi lai trong danh sach chinh.
+- Bao mat: chung tra shopId truoc khi khoi phuc san pham / topping, khong the khoi phuc muc cua shop khac.
+
+Luu y: Cac trang JSP thung rac co cung theme F&B cam nhu cac trang shop hien co, nut khoi phuc mau xanh la (var(--success)).
+
 ## 11. Kiem tra da chay
 
 Da compile toan bo `src/main/java` bang `javac` (qua PowerShell, classpath gom servlet-api,

@@ -158,6 +158,46 @@ public class CategoryDAOImpl implements CategoryDAO {
         return categories;
     }
 
+    @Override
+    public List<Category> findDeletedByShopId(long shopId) {
+        List<Category> categories = new ArrayList<>();
+        try (Connection conn = openConnection()) {
+            CategorySchema schema = resolveSchema(conn);
+            if (schema.isDeleted == null || schema.shopId == null) return categories;
+            String sql = "SELECT " + String.join(", ", buildSelectColumns(schema)) +
+                    " FROM " + q(schema.tableName) +
+                    " WHERE " + q(schema.shopId) + " = ?" +
+                    " AND " + q(schema.isDeleted) + " = 1" +
+                    " ORDER BY " + q(schema.id) + " DESC";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setLong(1, shopId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) categories.add(mapCategory(rs, schema));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return categories;
+    }
+
+    @Override
+    public Boolean restore(long id) {
+        try (Connection conn = openConnection()) {
+            CategorySchema schema = resolveSchema(conn);
+            if (schema.isDeleted == null) return false;
+            String sql = "UPDATE " + q(schema.tableName) + " SET " + q(schema.isDeleted) + " = 0" +
+                    " WHERE " + q(schema.id) + " = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setLong(1, id);
+                return ps.executeUpdate() == 1;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     private Connection openConnection() throws SQLException {
         Connection conn = DBUtil.getConnection();
         if (conn == null) {

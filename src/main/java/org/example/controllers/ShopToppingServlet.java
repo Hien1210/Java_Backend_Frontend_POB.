@@ -29,7 +29,8 @@ import java.util.Locale;
 @WebServlet("/shop/toppings")
 public class ShopToppingServlet extends HttpServlet {
 
-    private static final String VIEW = "/shop/Quanlytopping.jsp";
+    private static final String VIEW       = "/shop/Quanlytopping.jsp";
+    private static final String VIEW_TRASH = "/shop/ThungRacTopping.jsp";
 
     private final ToppingDAO toppingDAO = new ToppingDAOImpl();
     private final ToppingCategoryDAO categoryDAO = new ToppingCategoryDAOImpl();
@@ -49,6 +50,13 @@ public class ShopToppingServlet extends HttpServlet {
         if (shop == null) return;
 
         String action = normalize(req.getParameter("action"));
+
+        if ("trash".equals(action)) {
+            List<Topping> deletedToppings = toppingDAO.findDeletedByShopId(shop.getId());
+            req.setAttribute("deletedToppings", deletedToppings);
+            req.getRequestDispatcher(VIEW_TRASH).forward(req, resp);
+            return;
+        }
 
         if ("edit".equals(action)) {
             Long id = parseId(req);
@@ -90,6 +98,9 @@ public class ShopToppingServlet extends HttpServlet {
             case "delete":
                 success = delete(req, resp, shop);
                 break;
+            case "restore":
+                restoreTopping(req, resp, shop);
+                return;
             default: // create
                 success = create(req, resp, shop);
                 break;
@@ -175,6 +186,25 @@ public class ShopToppingServlet extends HttpServlet {
             return false;
         }
         return true;
+    }
+
+    private void restoreTopping(HttpServletRequest req, HttpServletResponse resp, Shop shop)
+            throws ServletException, IOException {
+        Long id = parseId(req);
+        if (id == null) {
+            req.setAttribute("loi", "ID topping không hợp lệ!");
+            req.setAttribute("deletedToppings", toppingDAO.findDeletedByShopId(shop.getId()));
+            req.getRequestDispatcher(VIEW_TRASH).forward(req, resp);
+            return;
+        }
+        boolean ok = toppingDAO.restore(id);
+        if (!ok) {
+            req.setAttribute("loi", "Không thể khôi phục topping!");
+            req.setAttribute("deletedToppings", toppingDAO.findDeletedByShopId(shop.getId()));
+            req.getRequestDispatcher(VIEW_TRASH).forward(req, resp);
+            return;
+        }
+        resp.sendRedirect(req.getContextPath() + "/shop/toppings?action=trash&success=restore");
     }
 
     // ── HELPERS ──────────────────────────────────────────────────────────────
