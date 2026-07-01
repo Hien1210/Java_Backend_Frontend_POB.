@@ -166,20 +166,17 @@ public class QuenMatKhauServlet extends HttpServlet {
         }
 
         if (password.length() < 8 || password.length() > 16) {
- claude/musing-darwin-3239d2
             hienThiFormDoiMatKhau(req, resp, null, "Mật khẩu phải có độ dài từ 8 đến 16 ký tự!");
 
             hienThiFormDoiMatKhau(req, resp, null, "Mật khẩu phải từ 8 đến 16 ký tự!");
- ThanhHien_TY00243
             return;
         }
 
         if (password.contains(" ")) {
- claude/musing-darwin-3239d2
             hienThiFormDoiMatKhau(req, resp, null, "Mật khẩu không được chứa khoảng trắng!");
 
             hienThiFormDoiMatKhau(req, resp, null, "Mật khẩu không được chứa khoảng trống!");
- ThanhHien_TY00243
+
             return;
         }
 
