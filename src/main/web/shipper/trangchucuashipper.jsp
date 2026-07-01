@@ -164,7 +164,13 @@
             <h1>Hệ thống điều phối giao hàng</h1>
             <div class="topbar-right">
                 <button type="button" class="theme-toggle" id="themeToggleBtn">🌓</button>
-                <div class="avatar-circle">SP</div>
+                <div class="avatar-circle" title="${tenShipper}">
+                    <c:choose>
+                        <c:when test="${not empty tenShipper}">${fn:toUpperCase(fn:substring(tenShipper, 0, 1))}</c:when>
+                        <c:otherwise>S</c:otherwise>
+                    </c:choose>
+                </div>
+                <span style="font-size:13px; font-weight:600;">${tenShipper}</span>
                 <a href="${pageContext.request.contextPath}/logout" class="btn-logout">Đăng xuất</a>
             </div>
         </header>
@@ -173,17 +179,33 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <div>
-                        <div class="stat-label">Đơn hôm nay</div>
-                        <div class="stat-num">12 đơn</div>
+                        <div class="stat-label">Hoàn thành hôm nay</div>
+                        <div class="stat-num">${donHoanThanhHomNay} đơn</div>
                     </div>
                     <div class="stat-icon" style="background: var(--primary-light); color: var(--primary);">✓</div>
                 </div>
                 <div class="stat-card">
                     <div>
-                        <div class="stat-label">Thu nhập tạm tính</div>
-                        <div class="stat-num" style="color: var(--primary);">185.000đ</div>
+                        <div class="stat-label">Thu nhập hôm nay</div>
+                        <div class="stat-num" style="color: var(--primary);">
+                            <fmt:formatNumber value="${thuNhapHomNay}" type="number" maxFractionDigits="0"/>đ
+                        </div>
                     </div>
                     <div class="stat-icon" style="background: rgba(76,175,80,0.15); color: var(--primary);">💵</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">Chờ lấy hàng</div>
+                        <div class="stat-num" style="color: var(--secondary);">${donChoLayHang} đơn</div>
+                    </div>
+                    <div class="stat-icon" style="background: var(--secondary-light); color: var(--secondary);">📦</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">Đang giao</div>
+                        <div class="stat-num" style="color: var(--primary);">${donDangGiao} đơn</div>
+                    </div>
+                    <div class="stat-icon" style="background: var(--primary-light); color: var(--primary);">🛵</div>
                 </div>
             </div>
 
