@@ -218,8 +218,10 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                             </svg>
                         </div>
-                        <input type="password" name="password" placeholder="Mật khẩu mới" required
-                               class="input-field w-full border-2 border-gray-200 text-gray-800 text-sm font-medium rounded-xl focus:border-[#273155] block pl-10 py-3.5 outline-none">
+                        <input type="password" id="passwordInput" name="password" placeholder="Mật khẩu mới (8–16 ký tự)" required
+                               class="input-field w-full border-2 border-gray-200 text-gray-800 text-sm font-medium rounded-xl focus:border-[#273155] block pl-10 py-3.5 outline-none"
+                               oninput="validatePassword()">
+                        <span id="passwordError" class="hidden text-red-600 text-xs font-semibold mt-1 block pl-1"></span>
                     </div>
 
                     <!-- Xác nhận mật khẩu -->
@@ -229,8 +231,10 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                             </svg>
                         </div>
-                        <input type="password" name="confirm_password" placeholder="Xác nhận mật khẩu" required
-                               class="input-field w-full border-2 border-gray-200 text-gray-800 text-sm font-medium rounded-xl focus:border-[#273155] block pl-10 py-3.5 outline-none">
+                        <input type="password" id="confirmPasswordInput" name="confirm_password" placeholder="Xác nhận mật khẩu" required
+                               class="input-field w-full border-2 border-gray-200 text-gray-800 text-sm font-medium rounded-xl focus:border-[#273155] block pl-10 py-3.5 outline-none"
+                               oninput="validateConfirm()">
+                        <span id="confirmError" class="hidden text-red-600 text-xs font-semibold mt-1 block pl-1"></span>
                     </div>
 
                     <!-- Nút Đổi mật khẩu -->
@@ -238,6 +242,51 @@
                         ĐỔI MẬT KHẨU
                     </button>
                 </form>
+
+                <script>
+                function validatePassword() {
+                    var val = document.getElementById('passwordInput').value;
+                    var err = document.getElementById('passwordError');
+                    if (val.indexOf(' ') !== -1) {
+                        err.textContent = '⚠ Mật khẩu không được chứa khoảng trắng.';
+                        err.classList.remove('hidden');
+                    } else if (val.length > 0 && (val.length < 8 || val.length > 16)) {
+                        err.textContent = '⚠ Mật khẩu phải từ 8 đến 16 ký tự.';
+                        err.classList.remove('hidden');
+                    } else {
+                        err.textContent = '';
+                        err.classList.add('hidden');
+                    }
+                    validateConfirm();
+                }
+
+                function validateConfirm() {
+                    var pw = document.getElementById('passwordInput').value;
+                    var cf = document.getElementById('confirmPasswordInput').value;
+                    var err = document.getElementById('confirmError');
+                    if (cf.length > 0 && pw !== cf) {
+                        err.textContent = '⚠ Mật khẩu xác nhận không khớp.';
+                        err.classList.remove('hidden');
+                    } else {
+                        err.textContent = '';
+                        err.classList.add('hidden');
+                    }
+                }
+
+                document.querySelector('form[action*="quenmatkhau"]').addEventListener('submit', function(e) {
+                    var pw = document.getElementById('passwordInput').value;
+                    if (pw.indexOf(' ') !== -1 || pw.length < 8 || pw.length > 16) {
+                        e.preventDefault();
+                        validatePassword();
+                        return;
+                    }
+                    var cf = document.getElementById('confirmPasswordInput').value;
+                    if (pw !== cf) {
+                        e.preventDefault();
+                        validateConfirm();
+                    }
+                });
+                </script>
             <% } %>
 
             <!-- Quay lại đăng nhập -->
