@@ -30,14 +30,13 @@ public class ShopProductServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = req.getSession(false);
-        Account account = (Account) session.getAttribute("account");
+        Account account = (session != null) ? (Account) session.getAttribute("account") : null;
 
         if (account == null || account.getRoleId() != 2) {
             resp.sendRedirect(req.getContextPath() + "/dangnhap");
             return;
         }
 
-        // ✅ SỬA: selectShopByOwnerId
         Shop shop = shopDAO.selectShopByOwnerId(account.getId());
         if (shop == null) {
             req.setAttribute("loi", "Bạn chưa có cửa hàng! Vui lòng đăng ký shop.");
@@ -80,14 +79,8 @@ public class ShopProductServlet extends HttpServlet {
         }
 
         if ("sizes".equals(action)) {
-            Long id = parseId(req);
-            if (id == null) {
-                req.setAttribute("loi", "ID sản phẩm không hợp lệ!");
-                forwardProductPage(req, resp, shop.getId());
-                return;
-            }
-            req.setAttribute("productId", id);
-            req.getRequestDispatcher("/shop/Quanlysize.jsp").forward(req, resp);
+            // Quản lý size được thực hiện trực tiếp trong trang sản phẩm (modal sửa)
+            forwardProductPage(req, resp, shop.getId());
             return;
         }
 
@@ -101,14 +94,13 @@ public class ShopProductServlet extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
 
         HttpSession session = req.getSession(false);
-        Account account = (Account) session.getAttribute("account");
+        Account account = (session != null) ? (Account) session.getAttribute("account") : null;
 
         if (account == null || account.getRoleId() != 2) {
             resp.sendRedirect(req.getContextPath() + "/dangnhap");
             return;
         }
 
-        // ✅ SỬA: selectShopByOwnerId
         Shop shop = shopDAO.selectShopByOwnerId(account.getId());
         if (shop == null) {
             req.setAttribute("loi", "Bạn chưa có cửa hàng!");
@@ -116,7 +108,7 @@ public class ShopProductServlet extends HttpServlet {
             return;
         }
 
-        String action = req.getParameter("action");
+        String action = normalize(req.getParameter("action"));
 
         try {
             switch (action) {

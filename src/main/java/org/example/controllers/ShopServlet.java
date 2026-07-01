@@ -138,13 +138,13 @@ public class ShopServlet extends HttpServlet {
         }
 
         request.setAttribute("listShop", filteredList);
-        request.getRequestDispatcher("shopDanhSach.jsp").forward(request, response);
+        request.getRequestDispatcher("/shopDanhSach.jsp").forward(request, response);
     }
 
     // 2. MỞ TRANG THÊM MỚI
     private void showNewForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("shopThemSua.jsp").forward(request, response);
+        request.getRequestDispatcher("/shopThemSua.jsp").forward(request, response);
     }
 
     // 3. LƯU BẢN GHI THÊM MỚI
@@ -177,7 +177,7 @@ public class ShopServlet extends HttpServlet {
         }
 
         request.setAttribute("shop", existingShop);
-        request.getRequestDispatcher("shopThemSua.jsp").forward(request, response);
+        request.getRequestDispatcher("/shopThemSua.jsp").forward(request, response);
     }
 
     // 5. LƯU DỮ LIỆU CẬP NHẬT (UPDATE)

@@ -14,10 +14,10 @@ public class UserAddressDAOImpl implements UserAddressDAO {
         List<UserAddress> list = new ArrayList<>();
         String sql = "SELECT id, account_id, label, full_address, receiver_name, receiver_phone, is_default, created_at " +
                      "FROM User_Addresses WHERE account_id = ? ORDER BY is_default DESC, id ASC";
-        lt  try (Connection conn = DBUtil.getConnection();
+          try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, accountId);
-            try (ResuSet rs = ps.executeQuery()) {
+            try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) list.add(map(rs));
             }
         } catch (Exception e) {
