@@ -94,6 +94,18 @@
             color: #dc2626;
             background: #fef2f2;
             border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-style: normal;
+            display: block;
+            text-align: center;
+            animation: shake 0.4s ease-out;
+        }
+        .error-msg-block {
+            color: #dc2626;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
             border-radius: 10px;
             padding: 10px 14px;
             font-size: 13px;
@@ -163,7 +175,7 @@
                 String loi = (String) request.getAttribute("loi");
                 if (loi != null && !loi.trim().isEmpty()) {
             %>
-                <div class="error-msg">⚠️ <%= loi %></div>
+                <div class="error-msg-block">⚠️ <%= loi %></div>
             <% } %>
 
             <%
@@ -174,6 +186,44 @@
             <% } %>
 
             <!-- Form -->
+            <script>
+                function validateResetPassword() {
+                    var password = document.getElementById("newPassword").value;
+                    var confirm = document.getElementById("confirmPassword").value;
+                    var errorMsg = document.getElementById("resetPasswordError");
+
+                    var trimmedPassword = password.trim();
+                    var trimmedConfirm = confirm.trim();
+
+                    if (trimmedPassword.length === 0) {
+                        errorMsg.innerHTML = "⚠️ Mật khẩu không được để trống!";
+                        errorMsg.className = "error-msg";
+                        return false;
+                    }
+
+                    if (trimmedPassword.length < 8 || trimmedPassword.length > 16) {
+                        errorMsg.innerHTML = "⚠️ Mật khẩu phải có độ dài từ 8 đến 16 ký tự!";
+                        errorMsg.className = "error-msg";
+                        return false;
+                    }
+
+                    if (trimmedPassword.includes(" ")) {
+                        errorMsg.innerHTML = "⚠️ Mật khẩu không được chứa khoảng trắng!";
+                        errorMsg.className = "error-msg";
+                        return false;
+                    }
+
+                    if (trimmedPassword !== trimmedConfirm) {
+                        errorMsg.innerHTML = "⚠️ Mật khẩu xác nhận không khớp!";
+                        errorMsg.className = "error-msg";
+                        return false;
+                    }
+
+                    errorMsg.innerHTML = "";
+                    errorMsg.className = "";
+                    return true;
+                }
+            </script>
             <% if (!resetStep) { %>
                 <!-- Form gửi OTP -->
                 <form action="${pageContext.request.contextPath}/quenmatkhau" method="post" class="flex flex-col space-y-4">
@@ -197,7 +247,7 @@
                 </form>
             <% } else { %>
                 <!-- Form reset password -->
-                <form action="${pageContext.request.contextPath}/quenmatkhau" method="post" class="flex flex-col space-y-4">
+                <form action="${pageContext.request.contextPath}/quenmatkhau" method="post" onsubmit="return validateResetPassword()" class="flex flex-col space-y-4">
                     <input type="hidden" name="action" value="reset">
 
                     <!-- OTP -->
@@ -218,7 +268,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                             </svg>
                         </div>
-                        <input type="password" name="password" placeholder="Mật khẩu mới" required
+                        <input type="password" name="password" id="newPassword" placeholder="Mật khẩu mới (8-16 ký tự)" required
                                class="input-field w-full border-2 border-gray-200 text-gray-800 text-sm font-medium rounded-xl focus:border-[#273155] block pl-10 py-3.5 outline-none">
                     </div>
 
@@ -229,9 +279,12 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                             </svg>
                         </div>
-                        <input type="password" name="confirm_password" placeholder="Xác nhận mật khẩu" required
+                        <input type="password" name="confirm_password" id="confirmPassword" placeholder="Xác nhận mật khẩu" required
                                class="input-field w-full border-2 border-gray-200 text-gray-800 text-sm font-medium rounded-xl focus:border-[#273155] block pl-10 py-3.5 outline-none">
                     </div>
+
+                    <!-- Password client-side error -->
+                    <div id="resetPasswordError" class="text-center"></div>
 
                     <!-- Nút Đổi mật khẩu -->
                     <button type="submit" class="btn-primary w-full text-white bg-gradient-to-r from-[#273155] to-[#3d4f7c] hover:from-[#1f284f] hover:to-[#334170] font-bold rounded-xl text-sm px-5 py-3.5 text-center tracking-wide shadow-md mt-2">
