@@ -8,7 +8,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.example.daos.AccountDAO;
 import org.example.daos.AccountDAOImpl;
+import org.example.daos.ShipperProfileDAO;
+import org.example.daos.ShipperProfileDAOImpl;
+import org.example.daos.UserProfileDAO;
+import org.example.daos.UserProfileDAOImpl;
 import org.example.models.Account;
+import org.example.models.ShipperProfile;
+import org.example.models.UserProfile;
 
 import java.io.IOException;
 
@@ -38,12 +44,12 @@ public class XacNhanOTPServlet extends HttpServlet {
         String otpNguoiDungNhap = otp1+otp2+otp3+otp4+otp5+otp6;
         if (otp.equals(otpNguoiDungNhap)){
             AccountDAO dao = new AccountDAOImpl();
-            String username  = (String) session.getAttribute("username");
-            String pass = (String)  session.getAttribute("password");
-            String fullname = (String)  session.getAttribute("fullname");
-            String phone =  (String) session.getAttribute("phone");
-            String email =  (String) session.getAttribute("email");
-            long roleId = getRegisterRoleId(session);
+            String username = (String) session.getAttribute("username");
+            String pass     = (String) session.getAttribute("password");
+            String fullname = (String) session.getAttribute("fullname");
+            String phone    = (String) session.getAttribute("phone");
+            String email    = (String) session.getAttribute("email");
+            long roleId     = getRegisterRoleId(session);
 
             Account account = new Account();
             account.setUserName(username);
@@ -52,23 +58,36 @@ public class XacNhanOTPServlet extends HttpServlet {
             account.setFullName(fullname);
             account.setPhone(phone);
             account.setRoleId(roleId);
-            boolean created = dao.create(account);
+
+            long newId = dao.createAndReturnId(account);
+            boolean created = newId > 0;
 
             if (created) {
+                // Tự động tạo bản ghi profile tương ứng theo role
+                if (roleId == 3) {
+                    // USER -> tạo User_Profiles trống
+                    UserProfileDAO userProfileDAO = new UserProfileDAOImpl();
+                    UserProfile up = new UserProfile();
+                    up.setAccountId(newId);
+                    userProfileDAO.save(up);
+                } else if (roleId == 4) {
+                    // SHIPPER -> tạo Shipper_Profiles trống
+                    ShipperProfileDAO shipperProfileDAO = new ShipperProfileDAOImpl();
+                    ShipperProfile sp = new ShipperProfile();
+                    sp.setAccountId(newId);
+                    shipperProfileDAO.save(sp);
+                }
+
                 clearRegisterSession(session);
 
                 // CHUYỂN HƯỚNG THEO ROLE
                 if (roleId == 4) {
-                    // SHIPPER -> chuyển đến trang chủ Shipper
                     resp.sendRedirect(req.getContextPath() + "/shipper/donhang");
                 } else if (roleId == 2) {
-                    // SHOP -> chuyển đến trang chủ Shop
                     resp.sendRedirect(req.getContextPath() + "/shop");
                 } else if (roleId == 1) {
-                    // ADMIN -> chuyển đến trang chủ Admin
                     resp.sendRedirect(req.getContextPath() + "/tong-quan");
                 } else {
-                    // USER -> quay về trang đăng nhập
                     req.setAttribute("thongbao", "Đăng ký thành công! Vui lòng đăng nhập.");
                     req.getRequestDispatcher("/DangNhap.jsp").forward(req, resp);
                 }

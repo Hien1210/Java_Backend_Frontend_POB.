@@ -16,6 +16,7 @@ import org.example.models.Shop;
 import org.example.models.ShipperOrderView;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,7 +57,32 @@ public class ShipperOrderServlet extends HttpServlet {
             danhSachDonHang.add(view);
         }
 
+        // Tính thống kê thực từ danh sách đơn
+        LocalDate today = LocalDate.now();
+        long donChoLayHang = 0, donDangGiao = 0, donHoanThanhHomNay = 0;
+        double thuNhapHomNay = 0.0;
+        for (ShipperOrderView v : danhSachDonHang) {
+            String st = v.getStatus();
+            if ("READY_FOR_PICKUP".equals(st)) donChoLayHang++;
+            else if ("SHIPPING".equals(st)) donDangGiao++;
+            else if ("DONE".equals(st) && v.getCreatedAt() != null && v.getCreatedAt().toLocalDate().equals(today)) {
+                donHoanThanhHomNay++;
+                if (orders.stream().anyMatch(o -> o.getId() == v.getId() && o.getDeliveryFee() != null)) {
+                    for (Order o : orders) {
+                        if (o.getId() == v.getId() && o.getDeliveryFee() != null) {
+                            thuNhapHomNay += o.getDeliveryFee();
+                        }
+                    }
+                }
+            }
+        }
+
         req.setAttribute("danhSachDonHang", danhSachDonHang);
+        req.setAttribute("donChoLayHang", donChoLayHang);
+        req.setAttribute("donDangGiao", donDangGiao);
+        req.setAttribute("donHoanThanhHomNay", donHoanThanhHomNay);
+        req.setAttribute("thuNhapHomNay", thuNhapHomNay);
+        req.setAttribute("tenShipper", account.getFullName() != null ? account.getFullName() : account.getUserName());
         req.getRequestDispatcher("/shipper/trangchucuashipper.jsp").forward(req, resp);
     }
 

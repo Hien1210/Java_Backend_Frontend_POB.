@@ -131,6 +131,37 @@
 
         @keyframes fuyIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* ================= TOGGLE ONLINE/OFFLINE ================= */
+        .online-toggle-wrap { padding: 16px 12px; border-top: 1px solid var(--border-color); }
+        .online-toggle-btn {
+            width: 100%; padding: 12px 16px; border-radius: 10px; border: none; cursor: pointer;
+            display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700;
+            transition: all 0.2s; position: relative;
+        }
+        .online-toggle-btn.is-online {
+            background: var(--primary-light); color: var(--primary);
+            border: 1.5px solid var(--primary);
+        }
+        .online-toggle-btn.is-offline {
+            background: rgba(239,68,68,0.08); color: #ef4444;
+            border: 1.5px solid rgba(239,68,68,0.3);
+        }
+        .online-toggle-btn:hover { opacity: 0.85; }
+        .toggle-dot {
+            width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+        }
+        .toggle-dot.online { background: var(--primary); box-shadow: 0 0 0 3px rgba(76,175,80,0.25); animation: pulse-green 1.5s infinite; }
+        .toggle-dot.offline { background: #ef4444; }
+        @keyframes pulse-green { 0%,100%{box-shadow:0 0 0 3px rgba(76,175,80,0.25);} 50%{box-shadow:0 0 0 6px rgba(76,175,80,0.1);} }
+
+        /* Badge trạng thái online trên topbar */
+        .online-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+        }
+        .online-badge.online { background: var(--primary-light); color: var(--primary); }
+        .online-badge.offline { background: rgba(239,68,68,0.1); color: #ef4444; }
+
         /* Mobile responsive */
         @media (max-width: 768px) {
             body { flex-direction: column; }
@@ -149,22 +180,70 @@
             <div class="logo">🛵</div>
             <div class="brand-text">
                 <span class="brand-title">POB SHIPPER</span>
-                <div style="font-size: 10px; color: var(--primary); font-weight: bold;">ĐANG HOẠT ĐỘNG</div>
+                <c:choose>
+                    <c:when test="${sessionScope.account.online}">
+                        <div style="font-size: 10px; color: var(--primary); font-weight: bold;">● ĐANG HOẠT ĐỘNG</div>
+                    </c:when>
+                    <c:otherwise>
+                        <div style="font-size: 10px; color: #ef4444; font-weight: bold;">● NGOẠI TUYẾN</div>
+                    </c:otherwise>
+                </c:choose>
             </div>
         </div>
         <ul class="menu">
-            <a href="#"><li class="menu-item active"><span>📋 Đơn hàng nhận</span></li></a>
+            <a href="${pageContext.request.contextPath}/shipper/donhang">
+                <li class="menu-item active"><span>📋 Đơn hàng nhận</span></li>
+            </a>
             <a href="#"><li class="menu-item"><span>💰 Thống kê thu nhập</span></li></a>
-            <a href="#"><li class="menu-item"><span>👤 Hồ sơ tài xế</span></li></a>
+            <a href="${pageContext.request.contextPath}/shipper/profile">
+                <li class="menu-item"><span>👤 Hồ sơ tài xế</span></li>
+            </a>
         </ul>
+
+        <%-- Nút bật/tắt Online/Offline ở cuối sidebar --%>
+        <div class="online-toggle-wrap">
+            <form action="${pageContext.request.contextPath}/shipper/status" method="post">
+                <c:choose>
+                    <c:when test="${sessionScope.account.online}">
+                        <button type="submit" class="online-toggle-btn is-online"
+                                onclick="return confirm('Tắt chế độ Online? Bạn sẽ không nhận đơn mới.')">
+                            <span class="toggle-dot online"></span>
+                            Đang Online — Nhấn để Offline
+                        </button>
+                    </c:when>
+                    <c:otherwise>
+                        <button type="submit" class="online-toggle-btn is-offline">
+                            <span class="toggle-dot offline"></span>
+                            Đang Offline — Nhấn để Online
+                        </button>
+                    </c:otherwise>
+                </c:choose>
+            </form>
+        </div>
     </aside>
 
     <main class="main">
         <header class="topbar">
-            <h1>Hệ thống điều phối giao hàng</h1>
+            <h1>
+                Hệ thống điều phối giao hàng
+                <c:choose>
+                    <c:when test="${sessionScope.account.online}">
+                        <span class="online-badge online">● Online</span>
+                    </c:when>
+                    <c:otherwise>
+                        <span class="online-badge offline">● Offline</span>
+                    </c:otherwise>
+                </c:choose>
+            </h1>
             <div class="topbar-right">
                 <button type="button" class="theme-toggle" id="themeToggleBtn">🌓</button>
-                <div class="avatar-circle">SP</div>
+                <div class="avatar-circle" title="${tenShipper}">
+                    <c:choose>
+                        <c:when test="${not empty tenShipper}">${fn:toUpperCase(fn:substring(tenShipper, 0, 1))}</c:when>
+                        <c:otherwise>S</c:otherwise>
+                    </c:choose>
+                </div>
+                <span style="font-size:13px; font-weight:600;">${tenShipper}</span>
                 <a href="${pageContext.request.contextPath}/logout" class="btn-logout">Đăng xuất</a>
             </div>
         </header>
@@ -173,17 +252,33 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <div>
-                        <div class="stat-label">Đơn hôm nay</div>
-                        <div class="stat-num">12 đơn</div>
+                        <div class="stat-label">Hoàn thành hôm nay</div>
+                        <div class="stat-num">${donHoanThanhHomNay} đơn</div>
                     </div>
                     <div class="stat-icon" style="background: var(--primary-light); color: var(--primary);">✓</div>
                 </div>
                 <div class="stat-card">
                     <div>
-                        <div class="stat-label">Thu nhập tạm tính</div>
-                        <div class="stat-num" style="color: var(--primary);">185.000đ</div>
+                        <div class="stat-label">Thu nhập hôm nay</div>
+                        <div class="stat-num" style="color: var(--primary);">
+                            <fmt:formatNumber value="${thuNhapHomNay}" type="number" maxFractionDigits="0"/>đ
+                        </div>
                     </div>
                     <div class="stat-icon" style="background: rgba(76,175,80,0.15); color: var(--primary);">💵</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">Chờ lấy hàng</div>
+                        <div class="stat-num" style="color: var(--secondary);">${donChoLayHang} đơn</div>
+                    </div>
+                    <div class="stat-icon" style="background: var(--secondary-light); color: var(--secondary);">📦</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">Đang giao</div>
+                        <div class="stat-num" style="color: var(--primary);">${donDangGiao} đơn</div>
+                    </div>
+                    <div class="stat-icon" style="background: var(--primary-light); color: var(--primary);">🛵</div>
                 </div>
             </div>
 

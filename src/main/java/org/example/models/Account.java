@@ -13,6 +13,7 @@ public class Account {
   private long  roleId;
   private String staTus;
   private boolean isDeleted;
+  private boolean isOnline;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 
@@ -112,6 +113,14 @@ public class Account {
 
     public void setDeleted(boolean deleted) {
         isDeleted = deleted;
+    }
+
+    public boolean isOnline() {
+        return isOnline;
+    }
+
+    public void setOnline(boolean online) {
+        isOnline = online;
     }
 
     public LocalDateTime getCreatedAt() {
