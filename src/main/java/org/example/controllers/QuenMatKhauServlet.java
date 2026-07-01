@@ -165,6 +165,16 @@ public class QuenMatKhauServlet extends HttpServlet {
             return;
         }
 
+        if (password.length() < 8 || password.length() > 16) {
+            hienThiFormDoiMatKhau(req, resp, null, "Mật khẩu phải từ 8 đến 16 ký tự!");
+            return;
+        }
+
+        if (password.contains(" ")) {
+            hienThiFormDoiMatKhau(req, resp, null, "Mật khẩu không được chứa khoảng trống!");
+            return;
+        }
+
         if (!password.equals(confirmPassword)) {
             hienThiFormDoiMatKhau(req, resp, null, "Mật khẩu xác nhận không khớp!");
             return;
