@@ -91,6 +91,18 @@
             color: #dc2626;
             background: #fef2f2;
             border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-style: normal;
+            display: block;
+            text-align: center;
+            animation: shake 0.4s ease-out;
+        }
+        .error-msg-block {
+            color: #dc2626;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
             border-radius: 10px;
             padding: 10px 14px;
             font-size: 13px;
@@ -160,7 +172,7 @@
                 String loi = (String) request.getAttribute("loi");
                 if (loi != null && !loi.trim().isEmpty()) {
             %>
-                <div class="error-msg">⚠️ <%= loi %></div>
+                <div class="error-msg-block">⚠️ <%= loi %></div>
             <% } %>
 
             <%
@@ -171,7 +183,7 @@
             <% } %>
 
             <!-- Form -->
-            <form action="${pageContext.request.contextPath}/dangnhap" method="post" class="flex flex-col space-y-4">
+            <form action="${pageContext.request.contextPath}/dangnhap" method="post" onsubmit="return validateLogin()" class="flex flex-col space-y-4">
 
                 <!-- Username -->
                 <div class="relative">
@@ -204,6 +216,9 @@
                         </svg>
                     </button>
                 </div>
+
+                <!-- Password client-side error -->
+                <div id="loginPasswordError" class="text-center"></div>
 
                 <!-- Quên mật khẩu link -->
                 <div class="flex justify-end pt-1">
@@ -241,6 +256,35 @@
                     show.classList.remove('hidden');
                     hide.classList.add('hidden');
                 }
+            }
+
+            function validateLogin() {
+                var password = document.getElementById("password").value;
+                var errorMsg = document.getElementById("loginPasswordError");
+
+                var trimmedPassword = password.trim();
+
+                if (trimmedPassword.length === 0) {
+                    errorMsg.innerHTML = "⚠️ Mật khẩu không được để trống!";
+                    errorMsg.className = "error-msg";
+                    return false;
+                }
+
+                if (trimmedPassword.length < 8 || trimmedPassword.length > 16) {
+                    errorMsg.innerHTML = "⚠️ Mật khẩu phải có độ dài từ 8 đến 16 ký tự!";
+                    errorMsg.className = "error-msg";
+                    return false;
+                }
+
+                if (trimmedPassword.includes(" ")) {
+                    errorMsg.innerHTML = "⚠️ Mật khẩu không được chứa khoảng trắng!";
+                    errorMsg.className = "error-msg";
+                    return false;
+                }
+
+                errorMsg.innerHTML = "";
+                errorMsg.className = "";
+                return true;
             }
         </script>
 
