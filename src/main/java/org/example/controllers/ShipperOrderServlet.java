@@ -11,9 +11,11 @@ import org.example.daos.OrderDAOImpl;
 import org.example.daos.ShopDAO;
 import org.example.daos.ShopDAOImpl;
 import org.example.models.Account;
+import org.example.models.BillView;
 import org.example.models.Order;
 import org.example.models.Shop;
 import org.example.models.ShipperOrderView;
+import org.example.utils.BillUtil;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -31,6 +33,12 @@ public class ShipperOrderServlet extends HttpServlet {
         Account account = currentShipper(req);
         if (account == null) {
             resp.sendRedirect(req.getContextPath() + "/dangnhap");
+            return;
+        }
+
+        String action = req.getParameter("action");
+        if ("detail".equals(action)) {
+            handleDetail(req, resp, account);
             return;
         }
 
@@ -118,6 +126,24 @@ public class ShipperOrderServlet extends HttpServlet {
         }
 
         resp.sendRedirect(req.getContextPath() + "/shipper/donhang");
+    }
+
+    private void handleDetail(HttpServletRequest req, HttpServletResponse resp, Account account)
+            throws ServletException, IOException {
+        String idParam = req.getParameter("id");
+        long orderId = 0;
+        try { orderId = Long.parseLong(idParam); } catch (Exception ignored) {}
+
+        Order order = orderId > 0 ? orderDAO.findById(orderId) : null;
+        if (order == null || order.getShipperId() != account.getId()) {
+            resp.sendRedirect(req.getContextPath() + "/shipper/donhang");
+            return;
+        }
+
+        BillView bill = BillUtil.build(order);
+        req.setAttribute("bill", bill);
+        req.setAttribute("order", order);
+        req.getRequestDispatcher("/shipper/chitietdonhang.jsp").forward(req, resp);
     }
 
     private Account currentShipper(HttpServletRequest req) {

@@ -127,7 +127,9 @@
         <a href="${pageContext.request.contextPath}/shipper/donhang">
             <li class="menu-item"><span>📋 Đơn hàng nhận</span></li>
         </a>
-        <a href="#"><li class="menu-item"><span>💰 Thống kê thu nhập</span></li></a>
+        <a href="${pageContext.request.contextPath}/shipper/thongbao">
+            <li class="menu-item"><span>🔔 Thông báo</span></li>
+        </a>
         <a href="${pageContext.request.contextPath}/shipper/profile">
             <li class="menu-item active"><span>👤 Hồ sơ tài xế</span></li>
         </a>

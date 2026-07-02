@@ -91,6 +91,9 @@
         .order-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
         .order-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--secondary); }
         .order-card.status-shipping::before { background: var(--primary); }
+        .order-card.status-done::before { background: #94a3b8; }
+        .order-card.status-done { opacity: 0.75; }
+        .badge-done { background: rgba(34,197,94,0.1); color: #16a34a; }
 
         .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .order-id { font-weight: 700; font-size: 15px; color: var(--text-main); }
@@ -194,7 +197,9 @@
             <a href="${pageContext.request.contextPath}/shipper/donhang">
                 <li class="menu-item active"><span>📋 Đơn hàng nhận</span></li>
             </a>
-            <a href="#"><li class="menu-item"><span>💰 Thống kê thu nhập</span></li></a>
+            <a href="${pageContext.request.contextPath}/shipper/thongbao">
+                <li class="menu-item"><span>🔔 Thông báo</span></li>
+            </a>
             <a href="${pageContext.request.contextPath}/shipper/profile">
                 <li class="menu-item"><span>👤 Hồ sơ tài xế</span></li>
             </a>
@@ -283,14 +288,15 @@
             </div>
 
             <div class="tabs-header">
-                <button class="tab-btn active" onclick="filterOrders('ALL')">Tất cả đơn</button>
-                <button class="tab-btn" onclick="filterOrders('READY_FOR_PICKUP')">Chờ lấy hàng 🟠</button>
-                <button class="tab-btn" onclick="filterOrders('SHIPPING')">Đang giao 🟢</button>
+                <button class="tab-btn active" onclick="filterOrders('ALL', this)">Tất cả đơn</button>
+                <button class="tab-btn" onclick="filterOrders('READY_FOR_PICKUP', this)">Chờ lấy hàng 🟠</button>
+                <button class="tab-btn" onclick="filterOrders('SHIPPING', this)">Đang giao 🟢</button>
+                <button class="tab-btn" onclick="filterOrders('DONE', this)">Lịch sử 📜</button>
             </div>
 
             <div class="order-list">
                 <c:forEach var="order" items="${danhSachDonHang}">
-                    <div class="order-card ${order.status == 'SHIPPING' ? 'status-shipping' : ''}" data-status="${order.status}">
+                    <div class="order-card ${order.status == 'SHIPPING' ? 'status-shipping' : ''} ${order.status == 'DONE' ? 'status-done' : ''}" data-status="${order.status}">
                         <div class="order-header">
                             <span class="order-id">Mã đơn: #<c:out value="${order.id}"/></span>
                             <span class="order-time">🕒 <c:out value="${order.createdAt}"/></span>
@@ -315,10 +321,11 @@
                                 <div style="font-size: 13px; font-weight:700; color: var(--secondary);"><c:out value="${order.paymentMethod}"/></div>
                             </div>
                             <div style="text-align: right;">
-                                <span class="badge-status ${order.status == 'SHIPPING' ? 'badge-shipping' : 'badge-pending'}">
+                                <span class="badge-status ${order.status == 'SHIPPING' ? 'badge-shipping' : order.status == 'DONE' ? 'badge-done' : 'badge-pending'}">
                                     <c:choose>
                                         <c:when test="${order.status == 'READY_FOR_PICKUP'}">📦 Chờ lấy hàng</c:when>
                                         <c:when test="${order.status == 'SHIPPING'}">🛵 Đang giao hàng</c:when>
+                                        <c:when test="${order.status == 'DONE'}">✅ Đã giao xong</c:when>
                                         <c:otherwise><c:out value="${order.status}"/></c:otherwise>
                                     </c:choose>
                                 </span>
@@ -329,7 +336,9 @@
                         </div>
 
                         <div class="btn-flex-group">
-                            <button type="button" class="btn-action btn-action-outline" onclick="openDetailModal('${order.id}', '${order.shopName}', '${order.shippingAddress}', '${order.receiverName}', '${order.totalPrice}', '${order.status}')">Xem chi tiết</button>
+                            <a href="${pageContext.request.contextPath}/shipper/donhang?action=detail&id=${order.id}">
+                                <button type="button" class="btn-action btn-action-outline">Xem chi tiết</button>
+                            </a>
 
                             <form action="${pageContext.request.contextPath}/shipper/donhang" method="post" style="display:inline;">
                                 <input type="hidden" name="orderId" value="${order.id}">
@@ -403,22 +412,33 @@
         });
 
         // --- XỬ LÝ LỌC TRẠNG THÁI ĐƠN HÀNG TRÊN UI ---
-        function filterOrders(status) {
-            // Đổi active trạng thái nút tab
+        function filterOrders(status, btn) {
             const tabs = document.querySelectorAll('.tab-btn');
             tabs.forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
+            if (btn) btn.classList.add('active');
 
-            // Ẩn / Hiện các card đơn hàng tương ứng
             const cards = document.querySelectorAll('.order-card');
             cards.forEach(card => {
-                if (status === 'ALL' || card.getAttribute('data-status') === status) {
-                    card.style.display = 'block';
+                const cardStatus = card.getAttribute('data-status');
+                let show = false;
+                if (status === 'ALL') {
+                    // Tab "Tất cả" không hiện DONE (để trang sạch sẽ hơn)
+                    show = cardStatus !== 'DONE';
                 } else {
+                    show = cardStatus === status;
+                }
+                card.style.display = show ? 'block' : 'none';
+            });
+        }
+
+        // Mặc định ẩn đơn DONE khi load trang
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.order-card').forEach(card => {
+                if (card.getAttribute('data-status') === 'DONE') {
                     card.style.display = 'none';
                 }
             });
-        }
+        });
 
         // --- XỬ LÝ POPUP DIALOG DETAIL ---
         const detailModal = document.getElementById('detailModal');
