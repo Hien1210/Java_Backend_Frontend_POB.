@@ -50,11 +50,19 @@ public class SuperAdminShopRequestServlet extends HttpServlet {
             return;
         }
 
-        Long shopId = parseId(req.getParameter("id"));
-        if (shopId == null) {
+        Long ownerId = parseId(req.getParameter("id"));
+        if (ownerId == null) {
             resp.sendRedirect(req.getContextPath() + "/super-admin/shop-requests?error=invalid_id");
             return;
         }
+
+        Shop shop = shopDAO.selectShopByOwnerId(ownerId);
+        if (shop == null) {
+            req.setAttribute("loi", "Khong tim thay shop tuong ung voi tai khoan nay.");
+            req.getRequestDispatcher("/admin/yeuCauShop.jsp").forward(req, resp);
+            return;
+        }
+        long shopId = shop.getId();
 
         String action = normalize(req.getParameter("action"));
         if ("accept".equals(action)) {
@@ -96,7 +104,7 @@ public class SuperAdminShopRequestServlet extends HttpServlet {
             return;
         }
 
-        Shop shop = shopDAO.selectShopById(shopId);
+        Shop shop = shopDAO.selectShopByOwnerId(shopId);
         if (shop == null) {
             req.setAttribute("loi", "Khong tim thay yeu cau shop.");
         } else {

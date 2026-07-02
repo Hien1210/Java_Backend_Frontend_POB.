@@ -523,14 +523,17 @@ public class AccountDAOImpl implements AccountDAO {
     @Override
     public List<Account> findPendingShopAccounts() {
         List<Account> list = new ArrayList<>();
-        String sql = "SELECT * FROM Accounts WHERE role_id = 2 AND (status IS NULL OR LOWER(status) != 'active') AND is_deleted = 0 ORDER BY created_at DESC";
+        String sql = "SELECT a.* FROM Accounts a INNER JOIN Shops s ON s.owner_id = a.id WHERE s.is_deleted = 0 AND a.is_deleted = 0 AND LOWER(s.status) = 'pending' ORDER BY a.created_at DESC";
+        System.out.println("[DEBUG] findPendingShopAccounts SQL: " + sql);
         try (Connection con = DBUtil.getConnection();
              PreparedStatement pst = con.prepareStatement(sql);
              ResultSet rs = pst.executeQuery()) {
             while (rs.next()) {
                 list.add(mapAccountFull(rs));
             }
+            System.out.println("[DEBUG] findPendingShopAccounts result count: " + list.size());
         } catch (Exception e) {
+            System.out.println("[DEBUG] findPendingShopAccounts ERROR: " + e.getMessage());
             e.printStackTrace();
         }
         return list;

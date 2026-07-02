@@ -15,6 +15,8 @@ public class UserAddressDAOImpl implements UserAddressDAO {
         String sql = "SELECT id, account_id, label, full_address, receiver_name, receiver_phone, is_default, created_at " +
                      "FROM User_Addresses WHERE account_id = ? ORDER BY is_default DESC, id ASC";
           try (Connection conn = DBUtil.getConnection();
+
+        try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, accountId);
             try (ResultSet rs = ps.executeQuery()) {
