@@ -43,6 +43,32 @@ public class DangKyShopServlet extends HttpServlet {
             return;
         }
 
+
+        // Validate các field bắt buộc
+        if (fullname.isEmpty()) {
+            fail(req, resp, "Họ tên không được để trống!", username, fullname, phone, email);
+            return;
+        }
+        if (username.isEmpty()) {
+            fail(req, resp, "Username không được để trống!", username, fullname, phone, email);
+            return;
+        }
+        if (email.isEmpty()) {
+            fail(req, resp, "Email không được để trống!", username, fullname, phone, email);
+            return;
+        }
+        if (password.isEmpty()) {
+            fail(req, resp, "Mật khẩu không được để trống!", username, fullname, phone, email);
+            return;
+        }
+        if (password.length() < 8 || password.length() > 16) {
+            fail(req, resp, "Mật khẩu phải có độ dài từ 8 đến 16 ký tự!", username, fullname, phone, email);
+            return;
+        }
+        if (password.contains(" ")) {
+            fail(req, resp, "Mật khẩu không được chứa khoảng trắng!", username, fullname, phone, email);
+            return;
+        }
         if (!password.equals(confirmPassword)) {
             fail(req, resp, "Mật khẩu không khớp!", username, fullname, phone, email);
             return;
