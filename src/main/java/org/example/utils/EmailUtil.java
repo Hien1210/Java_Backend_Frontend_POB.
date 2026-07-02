@@ -28,9 +28,7 @@ public class EmailUtil {
         Message message = new MimeMessage(session);
         message.setFrom(new InternetAddress(username));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toAddress));
-        message.setSubject(subject);
-        message.setText(body);
-
+        message.setSubject(MimeUtility.encodeText(subject, "UTF-8", "B"));
         message.setContent(body, "text/html; charset=UTF-8");
 
         Transport.send(message);
