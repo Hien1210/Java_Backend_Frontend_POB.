@@ -80,17 +80,13 @@ public class XacNhanOTPServlet extends HttpServlet {
 
                 clearRegisterSession(session);
 
-                // CHUYỂN HƯỚNG THEO ROLE
-                if (roleId == 4) {
-                    resp.sendRedirect(req.getContextPath() + "/shipper/donhang");
-                } else if (roleId == 2) {
-                    resp.sendRedirect(req.getContextPath() + "/shop");
-                } else if (roleId == 1) {
-                    resp.sendRedirect(req.getContextPath() + "/tong-quan");
+                // CHUYỂN HƯỚNG THEO ROLE — user mới tạo chưa đăng nhập, đều về trang đăng nhập
+                if (roleId == 2) {
+                    req.setAttribute("thongbao", "Đăng ký tài khoản shop thành công! Vui lòng đăng nhập và hoàn tất đăng ký thông tin cửa hàng.");
                 } else {
                     req.setAttribute("thongbao", "Đăng ký thành công! Vui lòng đăng nhập.");
-                    req.getRequestDispatcher("/DangNhap.jsp").forward(req, resp);
                 }
+                req.getRequestDispatcher("/DangNhap.jsp").forward(req, resp);
                 return;
             } else {
                 req.setAttribute("loi", "Đăng ký thất bại, vui lòng thử lại!");
